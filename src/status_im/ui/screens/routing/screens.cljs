@@ -18,6 +18,7 @@
             [status-im.ui.screens.privacy-and-security-settings.views :as privacy-and-security]
             [status-im.ui.screens.language-settings.views :as language-settings]
             [status-im.ui.screens.notifications-settings.views :as notifications-settings]
+            [status-im.ui.screens.signing.views :as signing]
             [status-im.ui.screens.sync-settings.views :as sync-settings]
             [status-im.ui.screens.advanced-settings.views :as advanced-settings]
             [status-im.ui.screens.fleet-settings.views :as fleet-settings]
