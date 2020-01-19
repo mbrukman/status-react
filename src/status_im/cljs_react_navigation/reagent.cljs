@@ -11,8 +11,8 @@
   (cond
     (ric/react-class? c) c
     (fn? c) (r/reactify-component
-              (fn [props & children]
-                [c (js->clj props :keywordize-keys true) children]))
+             (fn [props & children]
+               [c (js->clj props :keywordize-keys true) children]))
     :else :cljs.spec.alpha/invalid))
 
 (defn react-element?
@@ -22,9 +22,9 @@
     (base/isValidElement e) e
     (ric/react-class? e) (r/create-element e)
     (fn? e) (r/create-element
-              (r/reactify-component
-                (fn [props & children]
-                  [e (js->clj props :keywordize-keys true) children])))
+             (r/reactify-component
+              (fn [props & children]
+                [e (js->clj props :keywordize-keys true) children])))
     :else :cljs.spec.alpha/invalid))
 
 (defn fn-or-react-component?
@@ -69,7 +69,6 @@
 
 ;; API
 (def stack-screen base/stack-screen)
-(def tab-screen base/tab-screen)
 (def stack-navigator base/stack-navigator)
 (def bottom-tab-navigator base/bottom-tab-navigator)
 (def switch-navigator base/switch-navigator)

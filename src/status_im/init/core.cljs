@@ -31,6 +31,7 @@
               :app-active-since (or app-active-since now)
               :view-id view-id)})
 
+;; TODO: Switch stacks intro-stack and login-stack.
 (fx/defn initialize-views
   [cofx {:keys [logout?]}]
   (let [{{:multiaccounts/keys [multiaccounts] :as db} :db} cofx]
@@ -43,6 +44,7 @@
 
       :else
       (let [{:keys [key-uid public-key photo-path name]} (first (#(sort-by :last-sign-in > %) (vals multiaccounts)))]
+        ;; TODO: Call navigation event
         (multiaccounts.login/open-login cofx key-uid photo-path name public-key)))))
 
 (fx/defn initialize-multiaccounts
