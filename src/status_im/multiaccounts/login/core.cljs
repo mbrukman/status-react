@@ -215,12 +215,13 @@
               (mobile-network/on-network-status-change)
               (multiaccounts/switch-preview-privacy-mode-flag))))
 
-(defn get-new-auth-method [auth-method _]
-  (when-not (or (= keychain/auth-method-biometric auth-method)
-                (= keychain/auth-method-password auth-method))
-    (if (= auth-method keychain/auth-method-biometric-prepare)
-      keychain/auth-method-biometric
-      keychain/auth-method-password)))
+(defn get-new-auth-method [auth-method save-password?]
+  (when save-password?
+    (when-not (or (= keychain/auth-method-biometric auth-method)
+                  (= keychain/auth-method-password auth-method))
+      (if (= auth-method keychain/auth-method-biometric-prepare)
+        keychain/auth-method-biometric
+        keychain/auth-method-password))))
 
 (fx/defn login-only-events
   [{:keys [db] :as cofx} key-uid password save-password?]
