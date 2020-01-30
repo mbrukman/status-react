@@ -8,7 +8,8 @@
   [_ opts]
   {:request-permissions-fx
    {:permissions [:camera]
-    :on-allowed  #(re-frame/dispatch [:navigate-to :qr-scanner opts])
+    :on-allowed  #(re-frame/dispatch [:navigate-to :modals (merge {:screen :qr-scanner}
+                                                                  opts)])
     :on-denied   (fn []
                    (utils/set-timeout
                     #(utils/show-popup (i18n/label :t/error)

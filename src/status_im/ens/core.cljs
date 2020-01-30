@@ -109,10 +109,10 @@
   ;; we reset navigation so that navigate back doesn't return
   ;; into the registration flow
   (navigation/navigate-reset cofx
-                             {:index   1
-                              :key     :profile-stack
-                              :actions [{:routeName :my-profile}
-                                        {:routeName :ens-confirmation}]}))
+                             {:index  1
+                              :key    :profile-stack
+                              :routes [{:name :my-profile}
+                                       {:name :ens-confirmation}]}))
 
 (defn- on-resolve-owner
   [registry custom-domain? username address public-key response resolve-last-id* resolve-last-id]
@@ -218,10 +218,10 @@
             {:db (dissoc db :ens/registration)}
             ;; we reset navigation so that navigate back doesn't return
             ;; into the registration flow
-            (navigation/navigate-reset {:index   1
-                                        :key     :profile-stack
-                                        :actions [{:routeName :my-profile}
-                                                  {:routeName :ens-main}]})))
+            (navigation/navigate-reset {:index  1
+                                        :key    :profile-stack
+                                        :routes [{:name :my-profile}
+                                                 {:name :ens-main}]})))
 
 (fx/defn switch-domain-type
   {:events [::switch-domain-type]}

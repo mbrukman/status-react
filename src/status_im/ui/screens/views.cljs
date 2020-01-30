@@ -6,18 +6,19 @@
             [status-im.ui.screens.about-app.views :as about-app]
             [status-im.ui.components.react :as react]
             [status-im.ui.components.bottom-sheet.core :as bottom-sheet]
-            [status-im.cljs-react-navigation.reagent :as navigation]
+            [status-im.ui.screens.routing.core :as navigation]
             [reagent.core :as reagent]
-            [taoensso.timbre :as log]
             [status-im.ui.screens.mobile-network-settings.view :as mobile-network-settings]
             [status-im.ui.screens.keycard.views :as keycard]
             [status-im.ui.screens.home.sheet.views :as home.sheet]
-            [status-im.ui.screens.routing.core :as routing]
+            [status-im.ui.screens.routing.main :as routing]
             [status-im.ui.screens.signing.views :as signing]
             [status-im.ui.screens.popover.views :as popover]
             [status-im.ui.screens.multiaccounts.recover.views :as recover.views]
             [status-im.utils.dimensions :as dimensions]
             [status-im.ui.screens.wallet.send.views :as wallet]
+            [status-im.ui.components.tabbar.core :as tabbar]
+            [status-im.ui.components.status-bar.view :as statusbar]
             status-im.ui.screens.wallet.collectibles.etheremon.views
             status-im.ui.screens.wallet.collectibles.cryptostrikers.views
             status-im.ui.screens.wallet.collectibles.cryptokitties.views
@@ -84,62 +85,57 @@
     (js/Promise.
      (fn [resolve _]
        (reset! state state-obj)
-       (resolve true))))
-  (defn- load-state! []
-    (js/Promise.
-     (fn [resolve _]
-       (resolve @state)))))
+       (resolve true)))))
+
+(defn get-active-route-name [state]
+  (let [index (get state "index")
+        route (get-in state ["routes" index])]
+    (if-let [state' (get route "state")]
+      (get-active-route-name state')
+      (some-> (get route "name") keyword))))
+
+(defn on-state-change [state]
+  (let [route-name (get-active-route-name (js->clj state))]
+    (tabbar/minimize-bar route-name)
+    ;; NOTE: Both calls are for backward compatibility, should be reworked in future
+    (statusbar/set-status-bar route-name)
+    (re-frame/dispatch [:set :view-id route-name]))
+  (when debug?
+    (persist-state! state)))
+
+(defonce main-app-navigator    (routing/get-main-component false))
+(defonce twopane-app-navigator (routing/get-main-component true))
 
 (defn main []
-  (let [view-id               (re-frame/subscribe [:view-id])
-        main-app-navigator    (navigation/create-app-container (routing/get-main-component false))
-        twopane-app-navigator (navigation/create-app-container (routing/get-main-component true))
-        two-pane?             (reagent/atom (dimensions/fit-two-pane?))]
+  (let [two-pane? (reagent/atom (dimensions/fit-two-pane?))]
     (.addEventListener react/dimensions
                        "change"
                        (fn [_]
                          (let [two-pane-enabled? (dimensions/fit-two-pane?)]
                            (re-frame/dispatch [:set-two-pane-ui-enabled two-pane-enabled?])
-                           (log/debug ":set-two-pane " two-pane-enabled?)
                            (reset! two-pane? two-pane-enabled?))))
     (reagent/create-class
      {:component-did-mount
       (fn []
         (re-frame/dispatch [:set-two-pane-ui-enabled @two-pane?])
-        (log/debug :main-component-did-mount @view-id)
         (utils.universal-links/initialize))
 
       :component-will-unmount
       utils.universal-links/finalize
 
-      :component-will-update
-      (fn []
-        (when-not platform/desktop?
-          (react/dismiss-keyboard!)))
-
-      :component-did-update
-      (fn []
-        (log/debug :main-component-did-update @view-id))
-
       :reagent-render
       (fn []
         [react/safe-area-provider
          [react/view {:flex 1}
-          [(if @two-pane? twopane-app-navigator main-app-navigator)
+          [navigation/navigation-container
            (merge {:ref               (fn [r]
-                                        (navigation/set-navigator-ref r)
-                                        ;; TODO: Review this code
-                                        (when (and platform/android?
-                                                   (not debug?)
-                                                   (not (contains? #{:intro :login :progress} @view-id)))
-                                          (navigation/navigate-to @view-id nil)))
+                                        (navigation/set-navigator-ref r))
+                   :onStateChange     on-state-change
                    :enableURLHandling false}
                   (when debug?
-                    ;; https://github.com/react-navigation/native/blob/d0b24924b2e075fed3bd6586339d34fdd4c2b78e/src/createAppContainer.js#L293
-                    ;; urlShouldBe handled by react-navigation otherwise loadNavigationState does not work
-                    {:enableURLHandling      true
-                     :persistNavigationState persist-state!
-                     :loadNavigationState    load-state!}))]
+                    {:enableURLHandling true
+                     :initialState      @state}))
+           [(if @two-pane? twopane-app-navigator main-app-navigator)]]
           [wallet/prepare-transaction]
           [wallet/request-transaction]
           [wallet/select-account]

@@ -2,216 +2,113 @@
   (:require
    [reagent.core :as reagent]
    [status-im.ui.components.react :as react]
-   [status-im.ui.screens.routing.back-actions :as back-actions]
-   [status-im.ui.components.styles :as common-styles]
-   [status-im.cljs-react-navigation.reagent :as nav-reagent]
    [re-frame.core :as re-frame]
    [taoensso.timbre :as log]
-   [status-im.utils.platform :as platform]
-   [status-im.utils.core :as utils]
-   [status-im.ui.screens.routing.screens :as screens]
-   [status-im.ui.screens.routing.intro-login-stack :as intro-login-stack]
-   [status-im.ui.screens.routing.chat-stack :as chat-stack]
-   [status-im.ui.screens.routing.wallet-stack :as wallet-stack]
-   [status-im.ui.screens.routing.profile-stack :as profile-stack]
-   [status-im.ui.screens.routing.browser-stack :as browser-stack]
-   [status-im.ui.screens.routing.modals :as modals]
-   [status-im.ui.components.tabbar.core :as tabbar]
-   [status-im.ui.components.status-bar.view :as status-bar]
+   [oops.core :refer [ocall oget]]
    [status-im.react-native.js-dependencies :as js-dependencies]))
 
-(defonce view-id (reagent/atom nil))
-(defonce back-button-listener (atom nil))
+(defonce native js-dependencies/react-navigation-native)
+(defonce stack  js-dependencies/react-navigation-stack)
+(defonce bottom-tabs js-dependencies/react-navigation-bottom-tabs)
 
-(defn navigation-events [current-view-id modal?]
-  [:> nav-reagent/navigation-events
-   {:on-will-focus
+(def navigation-container (reagent/adapt-react-class
+                           (oget native "NavigationContainer")))
+
+(def use-focus-effect (oget native "useFocusEffect"))
+(def use-callback (oget js-dependencies/react "useCallback"))
+
+(def add-back-handler-listener (oget js-dependencies/back-handler "addEventListener"))
+(def remove-back-handler-listener (oget js-dependencies/back-handler "removeEventListener"))
+
+;; TODO: Unify with topbar back icon. Maybe dispatch the same event and move the all logic inside the event.
+(defn handle-on-screen-focus
+  [{:keys [back-handler on-focus name]}]
+  (use-focus-effect
+   (use-callback
     (fn []
-      (when (not= @view-id current-view-id)
-        (reset! view-id current-view-id))
-      (log/debug :on-will-focus current-view-id)
-      (when modal?
-        (status-bar/set-status-bar current-view-id))
-      (re-frame/dispatch [:screens/on-will-focus current-view-id]))
-    :on-did-focus
-    (fn []
-      (when @back-button-listener (.remove @back-button-listener))
-      (reset!
-       back-button-listener
-       (.addEventListener
-        js-dependencies/back-handler
-        "hardwareBackPress"
-        #(not (get back-actions/back-actions current-view-id))))
-      (when-not modal?
-        (status-bar/set-status-bar current-view-id)))
-    :on-will-blur
-    (fn []
-      (log/debug :on-will-blur current-view-id)
-      ;; Reset currently mounted text inputs to their default values
-      ;; on navigating away; this is a privacy measure
-      (doseq [[text-input default-value] @react/text-input-refs]
-        (.setNativeProps text-input (clj->js {:text default-value}))))}])
+      (log/debug :on-screen-focus name)
+      (let [on-back-press (fn []
+                            (when (and back-handler
+                                       (not= back-handler :noop))
+                              (re-frame/dispatch back-handler))
+                            (boolean back-handler))]
+        (when on-focus (re-frame/dispatch on-focus))
+        (add-back-handler-listener "hardwareBackPress" on-back-press)
+        (fn []
+          (remove-back-handler-listener "hardwareBackPress" on-back-press))))
+    #js [])))
 
-(defn wrap
-  "Wraps screen with main view and adds navigation-events component"
-  [screen-view-id component]
-  (fn [args]
-    (let [params          (get-in args [:navigation :state :params])
-          screen-focused? (= screen-view-id @view-id)]
-      [react/safe-area-view {:style {:background-color :white
-                                     :flex             1}}
-       [navigation-events screen-view-id false]
-       [component params screen-focused?]])))
+(defn wrapped-screen-style [{:keys [no-wrap]} insets]
+  (merge
+   {:background-color :white
+    :position         :absolute
+    :left             0
+    :right            0
+    :top              0
+    :bottom           0
+    :flex             1}
+   (when-not no-wrap
+     {:padding-top (oget insets "top")})))
 
-(defn wrap-modal
-  "Wraps modal screen with necessary styling and and adds navigation-events component"
-  [modal-view component]
-  (fn [args]
-    (let [params  (get-in args [:navigation :state :params])
-          active? (= modal-view @view-id)]
-      [react/safe-area-view {:style {:background-color :white
-                                     :flex             1}}
-       [component params active?]
-       [navigation-events modal-view true]])))
+(defn wrap-screen [{:keys [component] :as options}]
+  (merge options
+         {:component
+          (fn [props]
+            (handle-on-screen-focus options)
+            (let [props'   (js->clj props :keywordize-keys true)
+                  focused? (oget props "navigation" "isFocused")]
+              (reagent/as-element
+               [react/safe-area-consumer
+                (fn [insets]
+                  (reagent/as-element
+                   [react/view {:style (wrapped-screen-style options insets)}
+                    [component props' (focused?)]]))])))}))
 
-(defn prepare-config [config]
-  (-> config
-      (utils/update-if-present :initialRouteName name)
-      (utils/update-if-present :mode name)))
+(defn- get-screen [navigator]
+  (let [screen (reagent/adapt-react-class (oget navigator "Screen"))]
+    (fn [props]
+      [screen (wrap-screen props)])))
 
-(defn new-get-state-for-action [default-get-state-for-action]
-  (fn [action state]
-    (let [event (get back-actions/back-actions @view-id)]
-      (when (and (= (.-type action) (.-BACK nav-reagent/navigation-actions)) event (not= :default event))
-        (re-frame/dispatch [event]))
-      (default-get-state-for-action action state))))
+(defn- get-navigator [nav-object]
+  (let [navigator (reagent/adapt-react-class (oget nav-object "Navigator"))
+        screen    (get-screen nav-object)]
+    (fn [props children]
+      (into [navigator props]
+            (mapv screen children)))))
 
-(defn stack-navigator [routes config]
-  (let [res (nav-reagent/stack-navigator
-             routes
-             (merge {:headerMode        "none"
-                     #_:transitionConfig
-                     #_(fn []
-                         #js {:transitionSpec #js{:duration 10}})
-                     ;; :onTransitionStart (fn [n]
-                     ;;                      (let [idx    (.. n
-                     ;;                                       -navigation
-                     ;;                                       -state
-                     ;;                                       -index)
-                     ;;                            routes (.. n
-                     ;;                                       -navigation
-                     ;;                                       -state
-                     ;;                                       -routes)]
-                     ;;                        (when (and (array? routes) (int? idx))
-                     ;;                          (let [route      (aget routes idx)
-                     ;;                                route-name (keyword (.-routeName route))]
-                     ;;                            (tabbar/minimize-bar route-name)))))
-}
-                    (prepare-config config)))]
-    (set! (-> res .-router .-getStateForAction) (new-get-state-for-action (.-getStateForAction (.-router res))))
-    res))
+(defn create-stack []
+  (let [nav-obj (ocall stack "createStackNavigator")]
+    (get-navigator nav-obj)))
 
-(defn twopane-navigator [routes config]
-  (nav-reagent/twopane-navigator
-   routes
-   (merge {:headerMode        "none"
-           ;; :onTransitionStart (fn [n]
-           ;;                      (let [idx    (.. n
-           ;;                                       -navigation
-           ;;                                       -state
-           ;;                                       -index)
-           ;;                            routes (.. n
-           ;;                                       -navigation
-           ;;                                       -state
-           ;;                                       -routes)]
-           ;;                        (when (and (array? routes) (int? idx))
-           ;;                          (let [route      (aget routes idx)
-           ;;                                route-name (keyword (.-routeName route))]
-           ;;                            (tabbar/minimize-bar route-name)))))
-}
-          (prepare-config config))))
+(defn create-bottom-tabs []
+  (let [nav-obj (ocall bottom-tabs "createBottomTabNavigator")]
+    (get-navigator nav-obj)))
 
-(defn switch-navigator [routes config]
-  (nav-reagent/switch-navigator
-   routes
-   (prepare-config config)))
+(def common-actions (oget native "CommonActions"))
+(def stack-actions (oget native "StackActions"))
 
-(defn tab-navigator [routes config]
-  (nav-reagent/bottom-tab-navigator
-   routes
-   (assoc (prepare-config config) :lazy false)))
+(defonce navigator-ref (atom nil))
 
-(declare stack-screens)
+(defn set-navigator-ref [ref]
+  (reset! navigator-ref ref))
 
-(defn build-screen
-  "Builds screen from specified configuration. Currently screen can be
-  - keyword, which points to some specific route
-  - vector of [:modal :screen-key] type when screen should be wrapped as modal
-  - map with `name`, `screens`, `config` keys, where `screens` is a vector
-  of children and `config` is `stack-navigator` configuration"
-  [navigator screen]
-  (let [[screen-name screen-config]
-        (cond (keyword? screen)
-              [screen (screens/get-screen screen)]
-              (map? screen)
-              [(:name screen) screen]
-              :else screen)
-        res (cond
-              (map? screen-config)
-              (let [{:keys [screens config]} screen-config]
-                (navigator
-                 (stack-screens navigator screens)
-                 config))
+(defn can-be-called? []
+  (boolean @navigator-ref))
 
-              (vector? screen-config)
-              (let [[_ screen] screen-config]
-                (nav-reagent/stack-screen
-                 (wrap-modal screen-name screen)))
+(defn navigate-to [route params]
+  (when (can-be-called?)
+    (ocall @navigator-ref "dispatch"
+           (ocall common-actions "navigate"
+                  #js {:name   (name route)
+                       :params (clj->js params)}))))
 
-              :else
-              (nav-reagent/stack-screen (wrap screen-name screen-config)))]
-    [screen-name (cond-> {:screen res}
-                   (not (get back-actions/back-actions screen-name))
-                   (assoc :navigationOptions {:gestureEnabled false})
-                   (:navigation screen-config)
-                   (assoc :navigationOptions
-                          (:navigation screen-config)))]))
+(defn navigate-reset [state]
+  (when (can-be-called?)
+    (ocall @navigator-ref "dispatch"
+           (ocall common-actions "reset"
+                  (clj->js state)))))
 
-(defn stack-screens [navigator screens-map]
-  (->> screens-map
-       (map (partial build-screen navigator))
-       (into {})))
-
-(defn wrap-tabbar
-  [nav]
-  [tabbar/tabbar nav view-id])
-
-;; TODO: Add a switch view to be shown while waiting for multiaccounts initialization
-(defn get-main-component [two-pane?]
-  (let [view-id :multiaccounts]                 ;For now
-    (switch-navigator
-     (into {}
-           [(build-screen stack-navigator (intro-login-stack/login-stack view-id))
-            (build-screen stack-navigator (intro-login-stack/intro-stack))
-            [:tabs-and-modals
-             {:screen
-              (stack-navigator
-               (merge
-                {:tabs
-                 {:screen (tab-navigator
-                           (->> [(build-screen (if two-pane? twopane-navigator stack-navigator) chat-stack/chat-stack)
-                                 (build-screen stack-navigator browser-stack/browser-stack)
-                                 (build-screen stack-navigator wallet-stack/wallet-stack)
-                                 (build-screen stack-navigator profile-stack/profile-stack)]
-                                (into {}))
-                           {:initialRouteName :chat-stack
-                            :tabBarComponent  (reagent.core/reactify-component
-                                               wrap-tabbar)})}}
-                (stack-screens stack-navigator modals/modal-screens))
-               {:mode                     :modal
-                :defaultNavigationOptions {:cardOverlayEnabled true
-                                           :gestureEnabled     true}
-                :initialRouteName         :tabs})}]])
-     {:initialRouteName (if (= view-id :intro)
-                          :intro-stack
-                          :login-stack)})))
+(defn navigate-back []
+  (when (can-be-called?)
+    (ocall @navigator-ref "dispatch"
+           (ocall common-actions "goBack"))))

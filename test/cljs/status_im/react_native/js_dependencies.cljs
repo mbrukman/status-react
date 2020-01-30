@@ -44,7 +44,6 @@
 (def keychain #js {:setGenericPassword (constantly (.resolve js/Promise true))
                    "ACCESSIBLE" {}
                    "ACCESS_CONTROL" {}})
-(def react-navigation #js {:NavigationActions #js {}})
 (def desktop-menu #js {})
 (def desktop-config #js {})
 (def react-native-mail #js {:mail #js {}})
@@ -54,3 +53,13 @@
 (def net-info  #js {})
 (def touchid  #js {})
 (def safe-area-context #js {})
+
+(def back-handler #js {:addEventListener identity
+                       :removeEventListener identity})
+(def react #js {:useCallback nil})
+(def react-navigation-native #js {:NavigationContainer #js {}
+                                  :useFocusEffect      identity
+                                  :CommonActions       #js {}
+                                  :StackActions        #js {}})
+(def react-navigation-stack #js {:createStackNavigator identity})
+(def react-navigation-bottom-tabs #js {:createBottomTabNavigator identity})

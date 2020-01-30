@@ -623,7 +623,8 @@
   (fx/merge cofx
             {:db (assoc-in db [:wallet/prepare-transaction :modal-opened?] true)}
             (bottom-sheet/hide-bottom-sheet)
-            (navigation/navigate-to-cofx :qr-scanner options)))
+            (navigation/navigate-to-cofx :modals (merge {:screen :qr-scanner}
+                                                        options))))
 
 (fx/defn wallet-send-set-symbol
   {:events [:wallet.send/set-symbol]}

@@ -147,6 +147,7 @@
 
 (fx/defn enter-pin-navigate-back-button-clicked
   [{:keys [db] :as cofx}]
+  ;; TODO: Get rid of navigation-stack
   (let [screen-before (set (take 4 (:navigation-stack db)))
         navigate-to-browser? (contains? screen-before :browser-stack)]
     (if navigate-to-browser?
@@ -314,10 +315,10 @@
   [{:keys [db] :as cofx}]
   (fx/merge cofx
             (remove-listener-to-hardware-back-button)
-            (navigation/navigate-reset {:index   0
-                                        :actions [{:routeName (if (seq (:multiaccounts/multiaccounts db))
-                                                                :multiaccounts
-                                                                :intro)}]})))
+            (navigation/navigate-reset {:index  0
+                                        :routes [{:name (if (seq (:multiaccounts/multiaccounts db))
+                                                          :multiaccounts
+                                                          :intro)}]})))
 
 (fx/defn load-finishing-screen
   {:events [:keycard.onboarding.recovery-phrase-confirm-word2.ui/next-pressed
@@ -745,6 +746,7 @@
    cofx
    (clear-on-card-connected)
    (clear-on-card-read)
+   ;; TODO: Get rid of navigation stack
    (if (contains? (set (take 3 (:navigation-stack db)))
                   :keycard-login-pin)
      (navigation/navigate-to-cofx :multiaccounts nil)
