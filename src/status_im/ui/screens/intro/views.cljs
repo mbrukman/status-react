@@ -123,37 +123,36 @@
   [react/view
    {:style {:flex            1
             :justify-content :center}}
-   [react/view
-    {:style {:height 410}}
-    [react/scroll-view
-     {:content-container-style {:justify-content :flex-start}}
-     (for [[acc accessibility-n] (map vector multiaccounts (range (count multiaccounts)))]
-       (let [selected?  (= (:id acc) selected-id)
-             public-key (get-in acc [:derived constants/path-whisper-keyword :publicKey])]
-         ^{:key public-key}
-         [react/touchable-highlight
-          {:accessibility-label (keyword (str "select-account-button-" accessibility-n))
-           :on-press            #(re-frame/dispatch [:intro-wizard/on-key-selected (:id acc)])}
-          [react/view {:style (styles/list-item selected?)}
-           [react/view {:style styles/list-item-body}
-            [react/image {:source      {:uri (identicon/identicon public-key)}
-                          :resize-mode :cover
-                          :style       styles/multiaccount-image}]
-            [react/view {:style {:padding-horizontal 16
-                                 :flex               1}}
-             [react/text {:style           (assoc styles/wizard-text :text-align :left
-                                                  :color colors/black
-                                                  :line-height 22
-                                                  :font-weight "500")
-                          :number-of-lines 2
-                          :ellipsize-mode  :middle}
-              (gfy/generate-gfy public-key)]
-             [react/text {:style (assoc styles/wizard-text
-                                        :text-align :left
-                                        :line-height 22
-                                        :font-family "monospace")}
-              (utils/get-shortened-address public-key)]]]
-           [radio/radio selected?]]]))]]])
+   [react/scroll-view
+    {:style                   {:max-height 410}
+     :content-container-style {:justify-content :flex-start}}
+    (for [[acc accessibility-n] (map vector multiaccounts (range (count multiaccounts)))]
+      (let [selected?  (= (:id acc) selected-id)
+            public-key (get-in acc [:derived constants/path-whisper-keyword :publicKey])]
+        ^{:key public-key}
+        [react/touchable-highlight
+         {:accessibility-label (keyword (str "select-account-button-" accessibility-n))
+          :on-press            #(re-frame/dispatch [:intro-wizard/on-key-selected (:id acc)])}
+         [react/view {:style (styles/list-item selected?)}
+          [react/view {:style styles/list-item-body}
+           [react/image {:source      {:uri (identicon/identicon public-key)}
+                         :resize-mode :cover
+                         :style       styles/multiaccount-image}]
+           [react/view {:style {:padding-horizontal 16
+                                :flex               1}}
+            [react/text {:style           (assoc styles/wizard-text :text-align :left
+                                                 :color colors/black
+                                                 :line-height 22
+                                                 :font-weight "500")
+                         :number-of-lines 2
+                         :ellipsize-mode  :middle}
+             (gfy/generate-gfy public-key)]
+            [react/text {:style (assoc styles/wizard-text
+                                       :text-align :left
+                                       :line-height 22
+                                       :font-family "monospace")}
+             (utils/get-shortened-address public-key)]]]
+          [radio/radio selected?]]]))]])
 
 (defn storage-entry [{:keys [type icon icon-width icon-height
                              image image-selected image-width image-height
