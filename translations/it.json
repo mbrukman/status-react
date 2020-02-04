@@ -138,6 +138,8 @@
     "chaos-unicorn-day-details": "🦄🦄🦄🦄🦄🦄🦄🚀!",
     "chat": "Chat",
     "chat-and-transact": "Chatta ed effettua transazioni in privato con gli amici",
+    "chat-is-a-contact": "È nella lista contatti",
+    "chat-is-not-a-contact": "Non è nella lista contatti",
     "chat-key": "Chiave chat",
     "chat-key-content": "I messaggi sul protocollo Status vengono inviati e ricevuti tramite chiavi di cifratura. La chiave di chat pubblica è una stringa di caratteri che condividete con gli altri in modo che possano inviarvi messaggi.",
     "chat-key-title": "Chiave di chat",
@@ -363,7 +365,7 @@
     "edit": "Modifica",
     "edit-profile": "Modifica Profilo",
     "empty-chat-description": "Non ci sono ancora\n messaggi in questa chat",
-    "empty-chat-description-one-to-one": "Tutti i messaggi che invii qui sono crittografati e possono essere letti solo da te e",
+    "empty-chat-description-one-to-one": "Tutti i messaggi che invii qui sono crittografati e possono essere letti solo da te e ",
     "empty-chat-description-public": "È stato tranquillo qui per le ultime {{quiet-hours}}. Avviare la conversazione o",
     "empty-chat-description-public-share-this": "Condividi questa chat.",
     "enable": "Abilitare",
@@ -1167,6 +1169,7 @@
     "your-contact-code": "Concedendo l'accesso autorizzi questa DApp a recuperare la tua chiave chat",
     "your-data-belongs-to-you": "Se perdi la frase di recupero perderai dati e fondi",
     "your-data-belongs-to-you-description": "Status non può aiutarti a recuperare il tuo Multi-Account se perdi la frase di recupero. Sei responsabile della sicurezza dei tuoi dati e il backup della tua frase di recupero è la migliore salvaguardia.",
+    "your-keys": "Le tue chiavi",
     "your-recovery-phrase": "La tua frase di recupero",
     "your-recovery-phrase-description": "Questa è la tua frase di recupero. La usi per dimostrare che questo è il tuo portafoglio. Puoi vederlo solo una volta! Scrivilo su carta e conservalo in un luogo sicuro. Ne avrai bisogno se perdi o reinstalli il tuo portafoglio."
 }

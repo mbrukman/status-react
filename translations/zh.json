@@ -137,6 +137,8 @@
     "chaos-unicorn-day-details": "🦄🦄🦄🦄🦄🦄🦄🚀！",
     "chat": "聊天",
     "chat-and-transact": "与朋友开启隐私聊天和交易。",
+    "chat-is-a-contact": "好友",
+    "chat-is-not-a-contact": "非好友",
     "chat-key": "聊天码",
     "chat-key-content": "在Status聊天协议中使用加密密钥发送和接收消息。聊天码是您与他人分享的一串字符，在Status中用于其他人向您发送消息。",
     "chat-key-title": "聊天码",
@@ -373,7 +375,7 @@
     "ens-displayed-with": "您的消息会显示给其他人",
     "ens-get-name": "获取用户名",
     "ens-got-it": "好的, 知道了",
-    "ens-locked": "用户名已锁定。您将无法在{{date}}之前释放它",
+    "ens-locked": "用户名已锁定。您必须等到{{date}}才能将其释放",
     "ens-name-content": "您可以为您的聊天码使用以太坊名称服务（ENS）注册的自定义昵称。 ENS名称是去中心化的用户名。",
     "ens-name-title": "ENS名称",
     "ens-network-restriction": "仅适用于主网",
@@ -1158,6 +1160,7 @@
     "your-contact-code": "授予此DApp访问权限以查看您的聊天码",
     "your-data-belongs-to-you": "如果您丢失了您的助记词， 您也同时失去了您的数据和资金",
     "your-data-belongs-to-you-description": "如果您丢失了助记词，Status无法帮助您恢复多帐户。您需对数据的安全性负责，备份助记词是最佳保障。",
+    "your-keys": "您的账户",
     "your-recovery-phrase": "您的助记词",
     "your-recovery-phrase-description": "这是您的助记词。您需要用它来证明这个钱包属于您。您只能查看一次！请将其写在纸上并保存在安全的地方。如果丢失或重新安装钱包，您将需要用到这些助记词。"
 }
