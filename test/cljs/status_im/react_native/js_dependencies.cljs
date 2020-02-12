@@ -23,7 +23,6 @@
        :Dimensions         #js {:get  (fn [])}})
 
 (def vector-icons           #js {:default #js {}})
-(def webview-bridge         #js {:default #js {}})
 (def webview                #js {:WebView #js {}})
 (def status-keycard         #js {:default #js {}})
 
