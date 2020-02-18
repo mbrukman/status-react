@@ -100,7 +100,6 @@
    :keycard-wrong                                    keycard/wrong
    :keycard-unpaired                                 keycard/unpaired
    :keycard-login-pin                                keycard/login-pin
-   :keycard-login-connect-card                       keycard/login-connect-card
    :not-keycard                                      keycard/not-keycard
    :home                                             home/home-wrapper
    :chat                                             chat/chat

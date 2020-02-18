@@ -211,6 +211,7 @@
                            phone-entrace
                            circles])]
     (reset! state :init)
+    ;; TODO: Think how to improve that, this creates desync with animation
     (js/setTimeout #(compare-and-set! state :init :awaiting)
                    phone-enter-at)
     (animation/start animation)))

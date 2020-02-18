@@ -24,7 +24,6 @@
     :keycard-wrong
     :keycard-unpaired
     :keycard-login-pin
-    :keycard-login-connect-card
     :not-keycard
     :keycard-onboarding-intro
     :keycard-onboarding-puk-code
@@ -60,7 +59,6 @@
               config/hardwallet-enabled?
               (concat [:hardwallet-authentication-method
                        :keycard-login-pin
-                       :keycard-login-connect-card
                        :keycard-blank
                        :keycard-wrong
                        :keycard-unpaired

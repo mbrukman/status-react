@@ -215,31 +215,27 @@
         setup?        (boolean (get-in db [:hardwallet :setup-step]))
         exporting?    (get-in db [:hardwallet :on-export-success])]
     (log/debug "[hardwallet] verify pin error" error)
-    (cond tag-was-lost?
-          (fx/merge cofx
-                    {:db               (assoc-in db [:hardwallet :pin :status] nil)
-                     :utils/show-popup {:title   (i18n/label :t/error)
-                                        :content (i18n/label :t/cannot-read-card)}}
-                    (common/set-on-card-connected :hardwallet/verify-pin))
+    (when-not tag-was-lost?
+      (if (re-matches common/pin-mismatch-error (:error error))
+        (fx/merge cofx
+                  {:db (update-in db [:hardwallet :pin] merge {:status       :error
+                                                               :enter-step   :current
+                                                               :puk          []
+                                                               :current      []
+                                                               :original     []
+                                                               :confirmation []
+                                                               :sign         []
+                                                               :error-label  :t/pin-mismatch})}
+                  (common/hide-pair-sheet)
+                  (when-not setup?
+                    (if exporting?
+                      (navigation/navigate-back)
+                      (navigation/navigate-to-cofx :enter-pin-settings nil)))
+                  (common/get-application-info (common/get-pairing db) nil))
 
-          (re-matches common/pin-mismatch-error (:error error))
-          (fx/merge cofx
-                    {:db (update-in db [:hardwallet :pin] merge {:status       :error
-                                                                 :enter-step   :current
-                                                                 :puk          []
-                                                                 :current      []
-                                                                 :original     []
-                                                                 :confirmation []
-                                                                 :sign         []
-                                                                 :error-label  :t/pin-mismatch})}
-                    (when-not setup?
-                      (if exporting?
-                        (navigation/navigate-back)
-                        (navigation/navigate-to-cofx :enter-pin-settings nil)))
-                    (common/get-application-info (common/get-pairing db) nil))
-
-          :else
-          (common/show-wrong-keycard-alert nil true))))
+        (fx/merge cofx
+                  (common/hide-pair-sheet)
+                  (common/show-wrong-keycard-alert true))))))
 
 (fx/defn verify-pin
   {:events [:hardwallet/verify-pin]}
@@ -451,6 +447,8 @@
                              :cancel-button-text  ""
                              :confirm-button-text :t/okay}})
 
+;; NOTE: Maybe replaced by multiple events based on on flow to make it easier to maintain.
+;; Because there are many execution paths it is harder to follow all possible states.
 (fx/defn check-card-state
   {:events [:hardwallet/check-card-state]}
   [{:keys [db] :as cofx}]

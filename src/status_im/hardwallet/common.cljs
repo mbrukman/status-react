@@ -162,10 +162,13 @@
   (fx/merge cofx
             {:dismiss-keyboard true}
             (bottom-sheet/show-bottom-sheet
-             {:view {:content #(keycard-sheet/connect-keycard
-                                {:on-cancel     (fn [] (re-frame/dispatch on-cancel))
-                                 :on-connect    ::on-card-connected
-                                 :on-disconnect ::on-card-disconnected})}})))
+             {:view {:show-handle?      false
+                     :backdrop-dismiss? false
+                     :disable-drag?     true
+                     :content           #(keycard-sheet/connect-keycard
+                                          {:on-cancel     (fn [] (re-frame/dispatch on-cancel))
+                                           :on-connect    ::on-card-connected
+                                           :on-disconnect ::on-card-disconnected})}})))
 
 (fx/defn hide-pair-sheet
   [{:keys [db] :as cofx}]
@@ -186,6 +189,7 @@
                             {:status       nil
                              :login        (get-in db [:hardwallet :pin :original])
                              :export-key   []
+                             :sign         []
                              :puk          []
                              :current      []
                              :original     []

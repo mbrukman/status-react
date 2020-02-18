@@ -11,7 +11,8 @@
             [status-im.ui.components.bottom-sheet.core :as bottom-sheet]))
 
 (fx/defn login-got-it-pressed
-  {:events [:keycard.login.pin.ui/cancel-pressed]}
+  {:events [:keycard.login.pin.ui/got-it-pressed
+            :keycard.login.pin.ui/cancel-pressed]}
   [{:keys [db] :as cofx}]
   (fx/merge cofx
             {:db db}
@@ -67,17 +68,17 @@
       (empty? key-uid)
       (fx/merge cofx
                 (common/hide-pair-sheet)
-                (navigation/navigate-to-cofx cofx :keycard-blank nil))
+                (navigation/navigate-to-cofx :keycard-blank nil))
 
       multiaccount-mismatch?
       (fx/merge cofx
                 (common/hide-pair-sheet)
-                (navigation/navigate-to-cofx cofx :keycard-wrong nil))
+                (navigation/navigate-to-cofx :keycard-wrong nil))
 
       (empty? pairing)
       (fx/merge cofx
                 (common/hide-pair-sheet)
-                (navigation/navigate-to-cofx cofx :keycard-unpaired nil))
+                (navigation/navigate-to-cofx :keycard-unpaired nil))
 
       :else
       (common/get-keys-from-keycard cofx))))

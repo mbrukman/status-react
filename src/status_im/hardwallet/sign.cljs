@@ -80,20 +80,19 @@
 
 (fx/defn on-sign-error
   {:events [:hardwallet.callback/on-sign-error]}
-  [cofx error]
+  [{:keys [db] :as cofx} error]
   (log/debug "[hardwallet] sign error: " error)
-  (fx/merge cofx
-            (if (re-matches common/pin-mismatch-error (:error error))
-              (fn [{:keys [db] :as cofx}]
-                (fx/merge cofx
-                          {:db (-> db
-                                   (update-in [:hardwallet :pin] merge {:status      :error
-                                                                        :sign        []
-                                                                        :error-label :t/pin-mismatch})
-                                   (assoc-in [:signing/sign :keycard-step] :pin))}
-                          (common/hide-pair-sheet)
-                          (common/get-application-info (common/get-pairing db) nil)))
-              (fn [cofx]
-                (fx/merge cofx
-                          (common/hide-pair-sheet)
-                          (common/show-wrong-keycard-alert true))))))
+  (let [tag-was-lost? (= "Tag was lost." (:error error))]
+    (when-not tag-was-lost?
+      (if (re-matches common/pin-mismatch-error (:error error))
+        (fx/merge cofx
+                  {:db (-> db
+                           (update-in [:hardwallet :pin] merge {:status      :error
+                                                                :sign        []
+                                                                :error-label :t/pin-mismatch})
+                           (assoc-in [:signing/sign :keycard-step] :pin))}
+                  (common/hide-pair-sheet)
+                  (common/get-application-info (common/get-pairing db) nil))
+        (fx/merge cofx
+                  (common/hide-pair-sheet)
+                  (common/show-wrong-keycard-alert true))))))

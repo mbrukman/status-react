@@ -297,7 +297,7 @@
                      (assoc-in [:hardwallet :pin :on-verified] nil))}
             (common/set-on-card-connected :hardwallet/get-application-info)
             (common/set-on-card-read :hardwallet/check-card-state)
-            (common/show-pair-sheet {:on-cancel [::cancel-pressed]})))
+            (common/show-pair-sheet {})))
 
 (fx/defn cancel-confirm
   {:events [::cancel-confirm]}

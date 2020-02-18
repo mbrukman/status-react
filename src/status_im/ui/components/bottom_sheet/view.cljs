@@ -114,7 +114,7 @@
 (defn bottom-sheet-view [{:keys [window-height]}]
   (let [opacity-value    (animation/create-value 0)
         bottom-value     (animation/create-value window-height)
-        content-height   (reagent/atom window-height)
+        content-height   (reagent/atom (* window-height 0.4))
         internal-visible (reagent/atom false)
         external-visible (reagent/atom false)]
     (fn [{:keys [content on-cancel disable-drag? show-handle? show?
