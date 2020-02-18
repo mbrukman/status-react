@@ -286,7 +286,7 @@
              (when on-error
                {:dispatch (conj on-error message)})))))
 
-(fx/defn dissoc-signing-db-entries
+(fx/defn dissoc-signing-db-entries-and-check-queue
   {:events [:signing/dissoc-entries-and-check-queue]}
   [{:keys [db] :as cofx}]
   (fx/merge cofx
@@ -304,9 +304,7 @@
                (assoc :signing/in-progress? false))}
       (fx/merge cofx
                 (when-not (= (-> db :signing/sign :type) :pinless)
-                  #(-> %
-                       dissoc-signing-db-entries
-                       check-queue))
+                  (dissoc-signing-db-entries-and-check-queue))
                 #(when (= (-> db :signing/sign :type) :pinless)
                    {:dispatch-later [{:ms 3000
                                       :dispatch [:signing/dissoc-entries-and-check-queue]}]})
