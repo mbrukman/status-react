@@ -24,6 +24,10 @@
   {:label  (i18n/label :t/clear-history)
    :action #(re-frame/dispatch [:chat.ui/clear-history-pressed])})
 
+(defn mark-all-read [chat-id]
+  {:label  (i18n/label :t/mark-all-read)
+   :action #(re-frame/dispatch [:chat.ui/mark-all-read-pressed chat-id])})
+
 (defn fetch-history [chat-id]
   {:label  (i18n/label :t/fetch-history)
    :action #(re-frame/dispatch [:chat.ui/fetch-history-pressed chat-id])})
@@ -47,6 +51,7 @@
   [(view-profile chat-id)
    (clear-history)
    (fetch-history chat-id)
+   (mark-all-read chat-id)
    #_(fetch-history48-60 chat-id)
    #_(fetch-history84-96 chat-id)
    (delete-chat chat-id false)])
@@ -55,6 +60,7 @@
   [(group-info chat-id)
    (clear-history)
    (fetch-history chat-id)
+   (mark-all-read chat-id)
    #_(fetch-history48-60 chat-id)
    #_(fetch-history84-96 chat-id)
    (delete-chat chat-id true)])
@@ -63,6 +69,7 @@
   [(share-chat chat-id)
    (clear-history)
    (fetch-history chat-id)
+   (mark-all-read chat-id)
    #_(fetch-history48-60 chat-id)
    #_(fetch-history84-96 chat-id)
    (delete-chat chat-id false)])
