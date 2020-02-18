@@ -287,9 +287,11 @@
                {:dispatch (conj on-error message)})))))
 
 (fx/defn dissoc-signing-db-entries
-  {:events [:signing/dissoc-entries]}
+  {:events [:signing/dissoc-entries-and-check-queue]}
   [{:keys [db] :as cofx}]
-  {:db (dissoc db :signing/tx :signing/in-progress? :signing/sign)})
+  (fx/merge cofx
+            {:db (dissoc db :signing/tx :signing/in-progress? :signing/sign)}
+            check-queue))
 
 (fx/defn sign-message-completed
   {:events [:signing/sign-message-completed]}
@@ -297,22 +299,25 @@
   (let [{:keys [result error]} (types/json->clj result)
         on-result (get-in db [:signing/tx :on-result])]
     (if error
-      {:db (update db :signing/sign assoc :error (i18n/label :t/wrong-password) :in-progress? false)}
+      {:db (-> db
+               (assoc-in [:signing/sign :error] (i18n/label :t/wrong-password))
+               (assoc :signing/in-progress? false))}
       (fx/merge cofx
                 (when-not (= (-> db :signing/sign :type) :pinless)
-                  dissoc-signing-db-entries)
+                  #(-> %
+                       dissoc-signing-db-entries
+                       check-queue))
                 #(when (= (-> db :signing/sign :type) :pinless)
                    {:dispatch-later [{:ms 3000
-                                      :dispatch [:signing/dissoc-entries]}]})
-                (check-queue)
-                #(if on-result
+                                      :dispatch [:signing/dissoc-entries-and-check-queue]}]})
+                #(when on-result
                    {:dispatch (conj on-result result)})))))
 
 (fx/defn transaction-completed
   {:events       [:signing/transaction-completed]
    :interceptors [(re-frame/inject-cofx :random-id-generator)]}
   [cofx response tx-obj hashed-password]
-  (let [cofx-in-progress-false (assoc-in cofx [:db :signing/sign :in-progress?] false)
+  (let [cofx-in-progress-false (assoc-in cofx [:db :signing/in-progress?] false)
         {:keys [result error]} (types/json->clj response)]
     (if error
       (transaction-error cofx-in-progress-false error)
