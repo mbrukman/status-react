@@ -129,7 +129,7 @@
   (fx/merge cofx
             {:db                           (assoc-in db [:hardwallet :flow] :create)
              :hardwallet/check-nfc-enabled nil}
-            (navigation/navigate-to-cofx :keycard-onboarding-intro nil)))
+            (multiaccounts.create/intro-wizard)))
 
 (fx/defn create-keycard-multiaccount
   [{:keys [db] :as cofx}]
