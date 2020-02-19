@@ -55,7 +55,7 @@ export _NIX_ROOT = /opt/nix
 endif
 
 # Useful for checking if we are on NixOS
-OS_NAME = $(shell grep -oP '^NAME=\K\w(.*)' /etc/os-release)
+OS_NAME := $(shell grep -oP '^NAME=\K\w(.*)' /etc/os-release)
 
 #----------------
 # Nix targets
@@ -91,7 +91,7 @@ endif
 
 nix-add-gcroots: export TARGET := default
 nix-add-gcroots: ##@nix Add Nix GC roots to avoid status-react expressions being garbage collected
-	scripts/add-nix-gcroots.sh
+	nix/scripts/gcroots.sh
 
 nix-update-gradle: ##@nix Update maven nix expressions based on current gradle setup
 	nix/mobile/android/maven-and-npm-deps/maven/generate-nix.sh

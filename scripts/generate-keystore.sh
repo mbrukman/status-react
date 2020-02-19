@@ -2,6 +2,14 @@
 
 set -euf pipefail
 
+function property() {
+    grep "${2}" ${1}|cut -d'=' -f2
+}
+
+function property_gradle() {
+    property $(repo_path)/android/gradle.properties ${1}
+}
+
 TARGET=${1:-debug}
 
 CURRENT_DIR="$( cd "$( dirname "$0" )" && pwd )"
