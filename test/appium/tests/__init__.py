@@ -40,7 +40,7 @@ prod_fleet = 'eth.prod'
 mailserver_ams = 'mail-01.do-ams3'
 mailserver_hk = 'mail-02.ac-cn-hongkong-c'
 mailserver_gc = 'mail-01.gc-us-central1-a'
-mailserver_ams_01 = 'mail-01.do-ams3.eth.beta'
+mailserver_ams_01 = 'mail-01.do-ams3.eth.prod'
 camera_access_error_text = "To grant the required camera permission, please go to your system settings " \
                            "and make sure that Status > Camera is selected."
 
